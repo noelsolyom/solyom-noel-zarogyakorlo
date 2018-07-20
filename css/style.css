@@ -1,7 +1,14 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto');
+
+@font-face {
+  font-family: starJedi;
+  src: url(/fonts/Starjedi.ttf);
+}
+
 body{
   margin:0;
   font-size: 16px;
-}
+  }
 
 div{
   position:relative;
@@ -27,13 +34,30 @@ div{
 
 .spaceship-list{
   width: 100%;
-  background:  #0b88c5;
+  background-image: url("/img/200_s.gif");
   overflow: auto
+}
+
+.spaceship-list h1 {
+  padding: 0;
+  margin: 0;
+  font-family: starJedi;
+  text-align: center;
+  font-size: 3em;
+  letter-spacing: 2px;
+  color: #fae01f;
 }
 
 .one-spaceship{
   width: 100%;
-  background:  #000;
+  background:  #222;
+}
+
+.one-spaceship .list-div p{
+  font-family: 'Roboto', sans-serif;
+  color: #fae01f;
+  font-size: 1.5em;
+  margin: 0;
 }
 
 .searchbar{
@@ -42,6 +66,7 @@ div{
 
 #search-text,
 #search-button {
+  font-family: starJedi;
   line-height: 16px;
   padding: 5px 10px;
   border-radius: 5px;
@@ -59,6 +84,10 @@ div{
 #search-button:hover{
   cursor: pointer;
 }
+
+html {
+  min-width: 400px;
+ }
 
 @media(min-width:1200px){
   .spaceship-list{
@@ -78,4 +107,26 @@ div{
     bottom: 20px;
     left: 20px;
   }
+}
+
+
+.spaceship-item:hover {
+background: #d0d0d0;
+}
+
+.spaceship-item {
+  font-family: starJedi;
+  margin: 10px;
+  background: #c0c0c0;
+}
+
+.spaceship-item p {
+  font-size: 1em;
+  
+ margin: 0;
+}
+
+.spaceship-item img {
+  float: right;
+  
 }

@@ -11,10 +11,9 @@ function getData(url, callbackFunc) {
 
 function successAjax(xhttp) {
   var userDatas = JSON.parse(xhttp.responseText)[2].data;
-  deleteObject(userDatas);
-  setValues(userDatas);
-  setType(userDatas);
-  advBubbleSort(userDatas);
+  deleteObject(userDatas, 'consumables', null);
+  setValues(userDatas, null, 'unknown' );
+  advBubbleSort(userDatas, 'cost_in_credits');
   showSpaceShipList(userDatas);
   showStats(userDatas);
 }
@@ -22,46 +21,49 @@ function successAjax(xhttp) {
 getData('/json/spaceships.json', successAjax);
 
 document.querySelector('title').innerHTML = 'STAR WARS spaceships';
+document.querySelector('#search-text').placeholder = 'Search by model name';
+document.querySelector('html').lang = 'en';
 
-function deleteObject(arrayToClean) {
+function deleteObject(arrayToClean, keyToSearchIn, valueToSearch) {
   for (let i = 0; i < arrayToClean.length; i++) {
-    if (arrayToClean[i].consumables === null) {
+    if (arrayToClean[i][`${keyToSearchIn}`] === valueToSearch) {
       arrayToClean.splice(i, 1);
       i -= 1;
     }
   }
 }
 
-function setValues(array) {
-  for (let i = 0; i < array.length; i++) {
-    for (let j in array[i]) {
-      if (array[i][j] === null) {
-        array[i][j] = 'unknown';
+function setValues(arrayToSet, oldValue, newValue) {
+  for (let i = 0; i < arrayToSet.length; i++) {
+    for (let j in arrayToSet[i]) {
+      if (arrayToSet[i][j] === oldValue) {
+        arrayToSet[i][j] = newValue;
       }
     }
   }
 }
 
-function setType(arrayToSet) {
-  for (let i = 0; i < arrayToSet.length; i++) {
-    if (arrayToSet[i].cost_in_credits !== 'unknown') {
-      arrayToSet[i].cost_in_credits = Number(arrayToSet[i].cost_in_credits);
-    }
-  }
-}
-
-function advBubbleSort(arrayToSort) {
+function advBubbleSort(arrayToSort, key) {
+  setTypeToNumber(arrayToSort, key);
   let i = arrayToSort.length - 1; let j = 0;
   while (i >= 2) {
     let swap = 0;
     for (j = 0; j < i; j++) {
-      if ( (arrayToSort[j].cost_in_credits > arrayToSort[j + 1].cost_in_credits) ||
-            arrayToSort[j].cost_in_credits === 'unknown' ) {
+      if ( (arrayToSort[j][`${key}`] > arrayToSort[j + 1][`${key}`]) ||
+            arrayToSort[j][`${key}`] === 'unknown' ) {
         [arrayToSort[j], arrayToSort[j + 1]] = [arrayToSort[j + 1], arrayToSort[j]];
         swap = j;
       }
     }
     i = swap;
+  }
+}
+
+function setTypeToNumber(arrayToSet, key) {
+  for (let i = 0; i < arrayToSet.length; i++) {
+    if (arrayToSet[i][`${key}`] !== 'unknown') {
+      arrayToSet[i][`${key}`] = Number(arrayToSet[i][`${key}`]);
+    }
   }
 }
 
@@ -106,10 +108,6 @@ function createImg(spaceshipData) {
   return img;
 }
 
-function capitalize(stringToCapitalized) {
-  return stringToCapitalized[0].toUpperCase() + stringToCapitalized.slice(1);
-}
-
 function showData(spaceshipData) {
   let dataDiv = document.createElement('div');
   for (let key in spaceshipData) {
@@ -122,6 +120,10 @@ function showData(spaceshipData) {
   return dataDiv;
 }
 
+function capitalize(stringToCapitalized) {
+  return stringToCapitalized[0].toUpperCase() + stringToCapitalized.slice(1);
+}
+
 document.querySelector('#search-button').onclick = searchShip;
 
 function searchShip() {
@@ -130,14 +132,14 @@ function searchShip() {
   if (inputValue !== '') {
     for (let i = 0; i < spaceshipItemList.length; i++) {
       if (spaceshipItemList[i].spaceship.model.toLowerCase().indexOf(inputValue.toLowerCase()) > -1) {
-        createOneSpaceShip(spaceshipItemList[i].spaceship);
+        createOneSpaceship(spaceshipItemList[i].spaceship);
         break;
       }
     }
   }
 }
 
-function createOneSpaceShip(spaceshipData) {
+function createOneSpaceship(spaceshipData) {
   let container = document.querySelector('.one-spaceship');
   let listDiv = createListDiv(container);
   listDiv.innerHTML = '';
@@ -157,54 +159,44 @@ function showStats(userDatas) {
   let spaceshipList = document.querySelector('.spaceship-list');
   spaceshipList.appendChild(statsDiv);
   let stats = [];
-  stats[0] = 'Single crew ships: ' + countCrew(userDatas);
-  stats[1] = 'Maximum cargo capacity: ' + findMaxCargo(userDatas);
-  stats[2] = 'All transportable passengers: ' + countSumPassengers(userDatas);
+  stats[0] = 'Single crew ships: ' + countData(userDatas, 'crew', '1');
+  stats[1] = 'Maximum cargo capacity: ' + findMax(userDatas, 'cargo_capacity').model;
+  stats[2] = 'All transportable passengers: ' + sumData(userDatas, 'passengers');
   stats[3] = 'Image of the longest vehicle:';
-  stats[4] = `<img src="/img/${findMaxlengthiness(userDatas)}" alt="Image">`;
+  stats[4] = `<img src="/img/${findMax(userDatas, 'lengthiness').image}" alt="Image">`;
   createStats(stats, statsDiv);
 }
 
-function countCrew(userDatas) {
-  let singleCrew = 0;
-  for (let i = 0; i < userDatas.length; i++) {
-    if (userDatas[i].crew === '1') {
-      singleCrew++;
+function countData(data, key, value) {
+  let result = 0;
+  for (let i = 0; i < data.length; i++) {
+    if (data[i][`${key}`] === value) {
+      result++;
     }
   }
-  return singleCrew;
+  return result;
 }
 
-function findMaxCargo(userDatas) {
-  let maxCargo = userDatas[0];
-  for (let i = 1; i < userDatas.length; i++) {
-    if (userDatas[i].cargo_capacity !== 'unknown') {
-      if (Number(userDatas[i].cargo_capacity) > Number(maxCargo.cargo_capacity)) {
-        maxCargo = userDatas[i];
+function findMax(data, key) {
+  let maxValue = data[0];
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][`${key}`] !== 'unknown') {
+      if (Number(data[i][`${key}`]) > Number(maxValue[`${key}`])) {
+        maxValue = data[i];
       }
     }
   }
-  return maxCargo.model;
+  return maxValue;
 }
 
-function countSumPassengers(userDatas) {
-  let sumPassengers = 0;
-  for (let i = 0; i < userDatas.length; i++) {
-    if (userDatas[i].passengers !== 'unknown') {
-      sumPassengers += parseInt(userDatas[i].passengers, 10);
+function sumData(data, key) {
+  let sum = 0;
+  for (let i = 0; i < data.length; i++) {
+    if (data[i][`${key}`] !== 'unknown') {
+      sum += parseInt(data[i][`${key}`], 10);
     }
   }
-  return sumPassengers;
-}
-
-function findMaxlengthiness(userDatas) {
-  let maxLengthiness = userDatas[0];
-  for (let i = 1; i < userDatas.length; i++) {
-    if (parseInt(userDatas[i].lengthiness, 10) > parseInt(maxLengthiness.lengthiness, 10)) {
-      maxLengthiness = userDatas[i];
-    }
-  }
-  return maxLengthiness.image;
+  return sum;
 }
 
 function createStats(stats, statsDiv) {

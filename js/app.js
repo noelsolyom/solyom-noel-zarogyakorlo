@@ -174,7 +174,7 @@ function showData(spaceshipData) {
 }
 
 /**
- * Tobb szobol allo string elso betujenek nagybetusse alakitasa
+ * Visszaadja a megadott stringet első betujenel nagybetusse alakitva.
  * @constructor
  * @param {string} stringToCapitalized - String, amit nagy kezdobetusse szeretnenk alaitani.
  */
@@ -239,7 +239,7 @@ function showStats(data) {
 }
 
 /**
- * Fuggveny, ami objektumokkal feltoltott tombben a kulcsok es ertekek alapjan szamol.
+ * Visszaadja, hogy hany darab objektum felel meg a megadott keresesi felteteleknek.
  * @constructor
  * @param {array} data - Objektumokkal feltoltott tomb.
  * @param {string} key - Kulcs, amiben a szamolast hajtjuk vegre.
@@ -255,7 +255,7 @@ function countData(data, key, value) {
   return result;
 }
 
-/** Maximum kereso fuggveny objektumokkal feltoltott tombre.
+/** Visszaadja egy objektumot, ami a legnagyobb erteket tarolja a megadott kulcsban.
  * @constructor
  * @param {array} data - Objektumokkal feltoltott tomb.
  * @param {string} key - Kulcs, amiben a maximum erteket keressuk.
@@ -273,7 +273,7 @@ function findMax(data, key) {
 }
 
 /**
- * Ertekek osszeadasa objektumokkal feltoltott tombre.
+ * Visszaadja az adott tombben tarol objektumok adot kulcsaiban tarolt ertekek osszeget.
  * @constructor
  * @param {array} data - Objektumokkal feltoltott tomb.
  * @param {string} key - Kulcs, amiben a letarolt ertekeket ossze akarjuk adni.

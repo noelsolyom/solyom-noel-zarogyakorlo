@@ -1,5 +1,5 @@
 function getData(url, callbackFunc) {
-  var xhttp = new XMLHttpRequest();
+  let xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function ifItsReady() {
     if (this.readyState === 4 && this.status === 200) {
       callbackFunc(this);
@@ -11,141 +11,206 @@ function getData(url, callbackFunc) {
 
 function successAjax(xhttp) {
   var userDatas = JSON.parse(xhttp.responseText)[2].data;
-  deleteElementFromArrayOfObjects(userDatas, 'consumables', null);
-  overwriteEveryValuesOfObjectsInArray(userDatas, null, 'unknown');
-  advBubbleSortForArrayOfObjects(userDatas, 'cost_in_credits');
-  createSpaceShipList(userDatas);
+  deleteObject(userDatas);
+  setValues(userDatas);
+  setType(userDatas);
+  advBubbleSort(userDatas);
+  showSpaceShipList(userDatas);
+  showStats(userDatas);
 }
 
 getData('/json/spaceships.json', successAjax);
 
-document.querySelector('#search-button').onclick = searchShip;
+document.querySelector('title').innerHTML = 'STAR WARS spaceships';
 
-// Paraméter: objektumokkal feltöltött tömb, kulcs amiben keres, érték ami alapján keres //
-function deleteElementFromArrayOfObjects(inputArrayofObjects, key, value) {
-  for (let i = 0; i < inputArrayofObjects.length; i++) {
-    if (inputArrayofObjects[i][key] === value) {
-      inputArrayofObjects.splice(i, 1);
+function deleteObject(arrayToClean) {
+  for (let i = 0; i < arrayToClean.length; i++) {
+    if (arrayToClean[i].consumables === null) {
+      arrayToClean.splice(i, 1);
       i -= 1;
     }
   }
 }
 
-// Paraméter: objektumokkal feltöltött tömb, régi érték amit felülír, új érték amire módosít //
-function overwriteEveryValuesOfObjectsInArray(inputarray, oldValue, newValue) {
-  for (let i = 0; i < inputarray.length; i++) {
-    for (let key in inputarray[i]) {
-      if (inputarray[i][key] === oldValue) {inputarray[i][key] = newValue;}
+function setValues(array) {
+  for (let i = 0; i < array.length; i++) {
+    for (let j in array[i]) {
+      if (array[i][j] === null) {
+        array[i][j] = 'unknown';
+      }
     }
   }
 }
 
-// Paraméter: objektumokkal feltöltött tömb, tulajdonság, ami alapján rendez //
-function advBubbleSortForArrayOfObjects(inputArray, propertyName) {
-  let i = inputArray.length - 1; let j = 0;
+function setType(arrayToSet) {
+  for (let i = 0; i < arrayToSet.length; i++) {
+    if (arrayToSet[i].cost_in_credits !== 'unknown') {
+      arrayToSet[i].cost_in_credits = Number(arrayToSet[i].cost_in_credits);
+    }
+  }
+}
+
+function advBubbleSort(arrayToSort) {
+  let i = arrayToSort.length - 1; let j = 0;
   while (i >= 2) {
     let swap = 0;
     for (j = 0; j < i; j++) {
-      setTypeOfObjectProperty(inputArray[j], propertyName);
-      setTypeOfObjectProperty(inputArray[j + 1], propertyName);
-      if ((inputArray[j][`${propertyName}`] > inputArray[j + 1][`${propertyName}`]) ||
-          (typeof inputArray[j][`${propertyName}`] !== 'number'))  {
-        [inputArray[j], inputArray[j + 1]] = [inputArray[j + 1], inputArray[j]]; swap = j;
+      if ( (arrayToSort[j].cost_in_credits > arrayToSort[j + 1].cost_in_credits) ||
+            arrayToSort[j].cost_in_credits === 'unknown' ) {
+        [arrayToSort[j], arrayToSort[j + 1]] = [arrayToSort[j + 1], arrayToSort[j]];
+        swap = j;
       }
-    } i = swap;
+    }
+    i = swap;
   }
 }
 
-// Paraméter: objektum, módosítandó kulcs //
-function setTypeOfObjectProperty(inputObject, propertyName) {
-  if (typeof inputObject[`${propertyName}`] !== 'number' && inputObject[`${propertyName}`] !== 'unknown') {
-    inputObject[`${propertyName}`] = Number(inputObject[`${propertyName}`]);
-  }
-}
-
-// Praméter: objektumokkal feltöltött tömb, amit listáz //
-function createSpaceShipList(listSource) {
+function showSpaceShipList(userDatas) {
   let spaceshipList = document.querySelector('.spaceship-list');
   let listDiv = createListDiv(spaceshipList);
-  for (let i = 0; i < listSource.length; i++) {
-    createSpaceshipIntoList(listDiv, listSource[i]);
+  for (let i = 0; i < userDatas.length; i++) {
+    createSpaceship(listDiv, userDatas[i]);
   }
 }
 
-// Paraméter: az új Div elemet tartalmazó konténer Div element //
-function createListDiv(containerDiv) {
-  let listDiv = containerDiv.querySelector('.list-div');
+function createListDiv(spaceshipList) {
+  let listDiv = spaceshipList.querySelector('.list-div');
   if (!listDiv) {
     listDiv = document.createElement('div');
     listDiv.className = 'list-div';
-    containerDiv.appendChild(listDiv);
+    spaceshipList.appendChild(listDiv);
   }
   return listDiv;
 }
 
-// Paraméter: kép nevét .image kulcsban tartalmazó objektum //
-// Visszatérési érték: IMG element //
-function createImg(spaceShip) {
+function createSpaceship(listDiv, spaceshipData) {
+  let spaceshipItem = document.createElement('div');
+  spaceshipItem.className = 'spaceship-item';
+  spaceshipItem.spaceship = spaceshipData;
+
+  let img = createImg(spaceshipData);
+  spaceshipItem.appendChild(img);
+
+  let spaceshipDatas = showData(spaceshipData);
+  spaceshipDatas.className = 'data-div';
+  spaceshipItem.appendChild(spaceshipDatas);
+
+  listDiv.appendChild(spaceshipItem);
+}
+
+function createImg(spaceshipData) {
   let img = document.createElement('img');
-  img.src = `/img/${spaceShip.image}`;
-  img.alt = '';
+  img.src = `/img/${spaceshipData.image}`;
+  img.alt = spaceshipData.model;
   img.onerror = function showImageOnError(ev) {ev.target.src = '/img/957888-200.png';};
   return img;
 }
 
-// Paraméter: ahova a listát szeretnénk készíteni Div element, űrhajó adatait tartalmazó objektum //
-function createSpaceshipIntoList(listDiv, spaceShip) {
-  let listItemDiv = document.createElement('div');
-  listItemDiv.className = 'spaceship-item';
+function capitalize(stringToCapitalized) {
+  return stringToCapitalized[0].toUpperCase() + stringToCapitalized.slice(1);
+}
 
-  listItemDiv.appendChild(createImg(spaceShip));
-
-  let textDatas = document.createElement('div');
-  textDatas.className = 'text-data';
-  listItemDiv.appendChild(textDatas);
-  // Aktuális DIV Element objektum bővítése a benne megjelenített hajó adataival
-  listItemDiv.spaceship = spaceShip;
-  for (let key in spaceShip) {
-    if (Object.prototype.hasOwnProperty.call(spaceShip, key)) {
+function showData(spaceshipData) {
+  let dataDiv = document.createElement('div');
+  for (let key in spaceshipData) {
+    if (Object.prototype.hasOwnProperty.call(spaceshipData, key)) {
       let pElement = document.createElement('p');
-      pElement.innerHTML = `${key.replace(/_/g, ' ')}: ${spaceShip[key]}`;
-      textDatas.appendChild(pElement);
+      pElement.innerHTML = `${capitalize(key.replace(/_/g, ' '))}: ${spaceshipData[key]}`;
+      dataDiv.appendChild(pElement);
     }
   }
-  listDiv.appendChild(listItemDiv);
+  return dataDiv;
 }
+
+document.querySelector('#search-button').onclick = searchShip;
 
 function searchShip() {
   let inputValue = document.querySelector('#search-text').value;
-  let dataList = document.querySelectorAll('.spaceship-list .spaceship-item');
-  for (let i = 0; i < dataList.length; i++) {
-    if (dataList[i].spaceship.model.toLowerCase().indexOf(inputValue.toLowerCase()) > -1) {
-      createOneSpaceShip(dataList[i].spaceship);
-      break;
+  let spaceshipItemList = document.querySelectorAll('.spaceship-list .spaceship-item');
+  if (inputValue !== '') {
+    for (let i = 0; i < spaceshipItemList.length; i++) {
+      if (spaceshipItemList[i].spaceship.model.toLowerCase().indexOf(inputValue.toLowerCase()) > -1) {
+        createOneSpaceShip(spaceshipItemList[i].spaceship);
+        break;
+      }
     }
   }
-  inputValue.value = '';
 }
 
-// Paraméter: string, aminek az első betűjét kell nagybetűssé alakítani //
-// Visszatérési érték: Első betűnél nagybetűssé alakított string //
-function capitalizeFirstLetter(stringToCapitalize) {
-  return stringToCapitalize.charAt(0).toUpperCase() + stringToCapitalize.slice(1);
-}
-
-// paraméter: űrhajó adatait tartlamazó objektum //
-function createOneSpaceShip(spaceShip) {
+function createOneSpaceShip(spaceshipData) {
   let container = document.querySelector('.one-spaceship');
-  let resultDiv = createListDiv(container);
-  resultDiv.innerHTML = '';
+  let listDiv = createListDiv(container);
+  listDiv.innerHTML = '';
 
-  resultDiv.appendChild(createImg(spaceShip));
+  let img = createImg(spaceshipData);
+  listDiv.appendChild(img);
 
-  for (let key in spaceShip) {
-    if (Object.prototype.hasOwnProperty.call(spaceShip, key)) {
-      let spanElement = document.createElement('p');
-      spanElement.innerHTML = `<u>${(capitalizeFirstLetter(key.replace(/_/g, ' ')))}</u>: ${spaceShip[key]}`;
-      resultDiv.appendChild(spanElement);
+  let spaceshipDatas = showData(spaceshipData);
+  spaceshipDatas.className = 'search-data';
+
+  listDiv.appendChild(spaceshipDatas);
+}
+
+function showStats(userDatas) {
+  let statsDiv = document.createElement('div');
+  statsDiv.className = 'stats-div';
+  let spaceshipList = document.querySelector('.spaceship-list');
+  spaceshipList.appendChild(statsDiv);
+  let stats = [];
+  stats[0] = 'Single crew ships: ' + countCrew(userDatas);
+  stats[1] = 'Maximum cargo capacity: ' + findMaxCargo(userDatas);
+  stats[2] = 'All transportable passengers: ' + countSumPassengers(userDatas);
+  stats[3] = 'Image of the longest vehicle:';
+  stats[4] = `<img src="/img/${findMaxlengthiness(userDatas)}" alt="Image">`;
+  createStats(stats, statsDiv);
+}
+
+function countCrew(userDatas) {
+  let singleCrew = 0;
+  for (let i = 0; i < userDatas.length; i++) {
+    if (userDatas[i].crew === '1') {
+      singleCrew++;
     }
+  }
+  return singleCrew;
+}
+
+function findMaxCargo(userDatas) {
+  let maxCargo = userDatas[0];
+  for (let i = 1; i < userDatas.length; i++) {
+    if (userDatas[i].cargo_capacity !== 'unknown') {
+      if (Number(userDatas[i].cargo_capacity) > Number(maxCargo.cargo_capacity)) {
+        maxCargo = userDatas[i];
+      }
+    }
+  }
+  return maxCargo.model;
+}
+
+function countSumPassengers(userDatas) {
+  let sumPassengers = 0;
+  for (let i = 0; i < userDatas.length; i++) {
+    if (userDatas[i].passengers !== 'unknown') {
+      sumPassengers += parseInt(userDatas[i].passengers, 10);
+    }
+  }
+  return sumPassengers;
+}
+
+function findMaxlengthiness(userDatas) {
+  let maxLengthiness = userDatas[0];
+  for (let i = 1; i < userDatas.length; i++) {
+    if (parseInt(userDatas[i].lengthiness, 10) > parseInt(maxLengthiness.lengthiness, 10)) {
+      maxLengthiness = userDatas[i];
+    }
+  }
+  return maxLengthiness.image;
+}
+
+function createStats(stats, statsDiv) {
+  for (let i = 0; i < stats.length; i++) {
+    let spanStat = document.createElement('span');
+    spanStat.innerHTML = stats[i];
+    statsDiv.appendChild(spanStat);
   }
 }

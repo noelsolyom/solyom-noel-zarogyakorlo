@@ -11,6 +11,7 @@ function getData(url, callbackFunc) {
 
 function successAjax(xhttp) {
   var userDatas = JSON.parse(xhttp.responseText)[2].data;
+  // Feladatok //
   deleteObject(userDatas, 'consumables', null);
   setValues(userDatas, null, 'unknown' );
   advBubbleSort(userDatas, 'cost_in_credits');
@@ -20,6 +21,7 @@ function successAjax(xhttp) {
 
 getData('/json/spaceships.json', successAjax);
 
+// Saját munka //
 document.querySelector('title').innerHTML = 'STAR WARS spaceships';
 document.querySelector('#search-text').placeholder = 'Search by model name';
 document.querySelector('html').lang = 'en';
@@ -88,15 +90,13 @@ function createListDiv(spaceshipList) {
 function createSpaceship(listDiv, spaceshipData) {
   let spaceshipItem = document.createElement('div');
   spaceshipItem.className = 'spaceship-item';
+  // Az aktualis urhajo-item HTML Element objektumot kiegeszitjuk a benne tarolt urhajo-objektum adataival //
   spaceshipItem.spaceship = spaceshipData;
-
   let img = createImg(spaceshipData);
   spaceshipItem.appendChild(img);
-
   let spaceshipDatas = showData(spaceshipData);
   spaceshipDatas.className = 'data-div';
   spaceshipItem.appendChild(spaceshipDatas);
-
   listDiv.appendChild(spaceshipItem);
 }
 
@@ -131,6 +131,7 @@ function searchShip() {
   let spaceshipItemList = document.querySelectorAll('.spaceship-list .spaceship-item');
   if (inputValue !== '') {
     for (let i = 0; i < spaceshipItemList.length; i++) {
+      // A DOM-mal kivalszott HTML Element objektumokban elozoleg letarolt urhajo objektumokbol olvassuk ki az adatokat //
       if (spaceshipItemList[i].spaceship.model.toLowerCase().indexOf(inputValue.toLowerCase()) > -1) {
         createOneSpaceship(spaceshipItemList[i].spaceship);
         break;
@@ -201,8 +202,8 @@ function sumData(data, key) {
 
 function createStats(stats, statsDiv) {
   for (let i = 0; i < stats.length; i++) {
-    let spanStat = document.createElement('span');
-    spanStat.innerHTML = stats[i];
-    statsDiv.appendChild(spanStat);
+    let statSpan = document.createElement('span');
+    statSpan.innerHTML = stats[i];
+    statsDiv.appendChild(statSpan);
   }
 }
